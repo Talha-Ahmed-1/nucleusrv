@@ -35,7 +35,12 @@ class Core(val req:AbstrRequest, val rsp:AbstrResponse)(implicit val config:BusC
   val id_reg_ctl_memToReg = RegInit(0.U(2.W))
   val id_reg_ctl_regWrite = RegInit(false.B)
   val id_reg_ctl_memRead = RegInit(false.B)
+
   val id_reg_ctl_memWrite = RegInit(false.B)
+  val id_reg_f_ctl_regWrite = RegInit(false.B)
+  val id_reg_f_ctl_regRead = RegInit(false.B)
+
+
   val id_reg_ctl_branch = RegInit(false.B)
   val id_reg_ctl_aluOp = RegInit(0.U(2.W))
   val id_reg_ctl_jump = RegInit(0.U(2.W))
@@ -50,7 +55,12 @@ class Core(val req:AbstrRequest, val rsp:AbstrResponse)(implicit val config:BusC
   val ex_reg_ctl_memToReg = RegInit(0.U(2.W))
   val ex_reg_ctl_regWrite = RegInit(false.B)
   val ex_reg_ctl_memRead = RegInit(false.B)
+
   val ex_reg_ctl_memWrite = RegInit(false.B)
+  val ex_reg_f_ctl_regWrite = RegInit(false.B)
+  val ex_reg_f_ctl_regRead = RegInit(false.B)
+  
+
   val ex_reg_ctl_branch_taken = RegInit(false.B)
   val ex_reg_pc = RegInit(0.U(32.W))
 
@@ -62,6 +72,10 @@ class Core(val req:AbstrRequest, val rsp:AbstrResponse)(implicit val config:BusC
   val mem_reg_wra = RegInit(0.U(5.W))
   val mem_reg_ctl_memToReg = RegInit(0.U(2.W))
   val mem_reg_ctl_regWrite = RegInit(false.B)
+
+  val mem_reg_f_ctl_regWrite = RegInit(false.B)
+  val mem_reg_f_ctl_regRead = RegInit(false.B)
+
   val mem_reg_pc = RegInit(0.U(32.W))
 
   //Pipeline Units
@@ -111,8 +125,15 @@ class Core(val req:AbstrRequest, val rsp:AbstrResponse)(implicit val config:BusC
   id_reg_ctl_aluSrc := ID.ctl_aluSrc
   id_reg_ctl_memToReg := ID.ctl_memToReg
   id_reg_ctl_regWrite := ID.ctl_regWrite
+
+  id_reg_f_ctl_regWrite := ID.f_ctl_regWrite
+  id_reg_f_ctl_regRead := ID.f_ctl_regRead
+
   id_reg_ctl_memRead := ID.ctl_memRead
+
   id_reg_ctl_memWrite := ID.ctl_memWrite
+  id_reg_ctl_memWrite := ID.ctl_memWrite
+
   id_reg_ctl_branch := ID.ctl_branch
   id_reg_ctl_aluOp := ID.ctl_aluOp
   id_reg_ctl_jump := ID.ctl_jump
@@ -152,6 +173,10 @@ class Core(val req:AbstrRequest, val rsp:AbstrResponse)(implicit val config:BusC
   ex_reg_ins := id_reg_ins
   ex_reg_ctl_memToReg := id_reg_ctl_memToReg
   ex_reg_ctl_regWrite := id_reg_ctl_regWrite
+
+  ex_reg_f_ctl_regWrite := id_reg_f_ctl_regWrite
+  ex_reg_f_ctl_regRead := id_reg_f_ctl_regRead
+
 //  ex_reg_ctl_memRead := id_reg_ctl_memRead
 //  ex_reg_ctl_memWrite := id_reg_ctl_memWrite
   ID.id_ex_mem_read := id_reg_ctl_memRead
@@ -181,6 +206,10 @@ class Core(val req:AbstrRequest, val rsp:AbstrResponse)(implicit val config:BusC
     ex_reg_ctl_memToReg := ex_reg_ctl_memToReg
 //    mem_reg_ctl_memToReg := mem_reg_ctl_memToReg
     mem_reg_ctl_regWrite := mem_reg_ctl_regWrite
+
+    mem_reg_f_ctl_regWrite := mem_reg_f_ctl_regWrite
+    mem_reg_f_ctl_regRead := mem_reg_f_ctl_regRead
+
     mem_reg_ins := mem_reg_ins
     mem_reg_pc := mem_reg_pc
 
@@ -192,6 +221,10 @@ class Core(val req:AbstrRequest, val rsp:AbstrResponse)(implicit val config:BusC
     mem_reg_result := ex_reg_result
 //    mem_reg_ctl_memToReg := ex_reg_ctl_memToReg
     mem_reg_ctl_regWrite := ex_reg_ctl_regWrite
+
+    mem_reg_f_ctl_regWrite := ex_reg_f_ctl_regWrite
+    mem_reg_f_ctl_regRead := ex_reg_f_ctl_regRead
+
     mem_reg_ins := ex_reg_ins
     mem_reg_pc := ex_reg_pc
     mem_reg_wra := ex_reg_wra
@@ -201,6 +234,10 @@ class Core(val req:AbstrRequest, val rsp:AbstrResponse)(implicit val config:BusC
   mem_reg_wra := ex_reg_wra
   mem_reg_ctl_memToReg := ex_reg_ctl_memToReg
   EX.ex_mem_regWrite := ex_reg_ctl_regWrite
+
+  EX.ex_mem_f_regWrite := ex_reg_f_ctl_regWrite
+  EX.ex_mem_f_regRead := ex_reg_f_ctl_regRead
+
   MEM.io.aluResultIn := ex_reg_result
   MEM.io.writeData := ex_reg_wd
   MEM.io.readEnable := ex_reg_ctl_memRead
@@ -234,6 +271,11 @@ class Core(val req:AbstrRequest, val rsp:AbstrResponse)(implicit val config:BusC
   ID.ctl_writeEnable := mem_reg_ctl_regWrite
   io.pin := wb_data
 
+  EX.mem_wb_f_regWrite := mem_reg_f_ctl_regWrite
+  ID.f_ctl_writeEnable := mem_reg_f_ctl_regWrite
+
+  EX.mem_wb_f_regRead := mem_reg_f_ctl_regRead
+  ID.f_ctl_readEnable := mem_reg_f_ctl_regRead
 //  when(ex_reg_ins =/= 0.U && ex_reg_pc =/= 0.U ) {
     printf("PC: %x, INST: %x, REG[%d] <- %x\n", ex_reg_pc, ex_reg_ins,
       Mux(mem_reg_ctl_regWrite, mem_reg_wra, 0.U),

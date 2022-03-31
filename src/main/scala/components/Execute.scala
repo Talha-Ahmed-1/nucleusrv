@@ -16,6 +16,12 @@ class Execute extends Module {
 
     val ex_mem_regWrite = Input(Bool())
     val mem_wb_regWrite = Input(Bool())
+    ////
+    val mem_wb_f_regWrite = Input(Bool())
+    val mem_wb_f_regRead = Input(Bool())
+    val ex_mem_f_regWrite = Input(Bool())
+    val ex_mem_f_regRead = Input(Bool())
+    ////
     val id_ex_ins = Input(UInt(32.W))
     val ex_mem_ins = Input(UInt(32.W))
     val mem_wb_ins = Input(UInt(32.W))
@@ -33,7 +39,10 @@ class Execute extends Module {
   val fu = Module(new ForwardingUnit).io
 
   // Forwarding Unt
-
+  //
+  fu.ex_f_regWrite := io.ex_mem_f_regWrite
+  fu.mem_f_regWrite := io.mem_wb_f_regWrite
+  //
   fu.ex_regWrite := io.ex_mem_regWrite
   fu.mem_regWrite := io.mem_wb_regWrite
   fu.ex_reg_rd := io.ex_mem_ins(11, 7)

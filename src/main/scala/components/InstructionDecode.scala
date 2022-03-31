@@ -8,7 +8,12 @@ class InstructionDecode extends Module {
     val writeData = Input(UInt(32.W))
     val writeReg = Input(UInt(5.W))
     val pcAddress = Input(UInt(32.W))
+
     val ctl_writeEnable = Input(Bool())
+    //for f
+    val f_ctl_writeEnable = Input(Bool())
+    val f_ctl_readEnable = Input(Bool())
+
     val id_ex_mem_read = Input(Bool())
     val ex_mem_mem_write = Input(Bool())
     val ex_mem_mem_read = Input(Bool())
@@ -30,7 +35,11 @@ class InstructionDecode extends Module {
     val func3 = Output(UInt(3.W))
     val ctl_aluSrc = Output(Bool())
     val ctl_memToReg = Output(UInt(2.W))
+
     val ctl_regWrite = Output(Bool())
+    val f_ctl_regWrite = Output(Bool())
+    val f_ctl_regRead = Output(Bool())
+
     val ctl_memRead = Output(Bool())
     val ctl_memWrite = Output(Bool())
     val ctl_branch = Output(Bool())
@@ -62,6 +71,7 @@ class InstructionDecode extends Module {
   //Control Unit
   val control = Module(new Control)
   control.io.in := io.id_instruction(6, 0)
+  control.io.f5 := io.id_instruction(31, 27)
   io.ctl_aluOp := control.io.aluOp
   io.ctl_aluSrc := control.io.aluSrc
   io.ctl_aluSrc1 := control.io.aluSrc1
@@ -73,9 +83,16 @@ class InstructionDecode extends Module {
     io.ctl_memWrite := control.io.memWrite
     io.ctl_regWrite := control.io.regWrite
 
+    io.f_ctl_regWrite := control.io.fRegWrite
+    io.f_ctl_regRead := control.io.fRegRead
+
   }.otherwise {
     io.ctl_memWrite := false.B
     io.ctl_regWrite := false.B
+
+    io.f_ctl_regWrite := DontCare
+    io.f_ctl_regRead := DontCare
+
   }
 
   //Register File
@@ -89,6 +106,18 @@ class InstructionDecode extends Module {
   registers.io.writeAddress := registerRd
   registers.io.writeData := io.writeData
 
+  // F Register File
+  val fregisters = Module(new FRegisters)
+  // val fregisterRs1 = io.id_instruction(19, 15)
+  // val fregisterRs2 = io.id_instruction(24, 20)
+  val fregisterRs3 = io.id_instruction(31, 27)
+  fregisters.io.readAddress(0) := registerRs1
+  fregisters.io.readAddress(1) := registerRs2
+  fregisters.io.readAddress(2) := fregisterRs3
+  fregisters.io.writeEnable := io.f_ctl_writeEnable
+  fregisters.io.writeAddress := registerRd
+  fregisters.io.writeData := io.writeData
+
   //Forwarding to fix structural hazard
   when(io.ctl_writeEnable && (io.writeReg === registerRs1)){
     when(registerRs1 === 0.U){
@@ -97,7 +126,8 @@ class InstructionDecode extends Module {
       io.readData1 := io.writeData
     }
   }.otherwise{
-    io.readData1 := registers.io.readData(0)
+    // io.readData1 := registers.io.readData(0)
+    io.readData1 := Mux(io.f_ctl_readEnable, fregisters.io.readData(0), registers.io.readData(0))
   }
   when(io.ctl_writeEnable && (io.writeReg === registerRs2)){
     when(registerRs2 === 0.U){
@@ -106,7 +136,8 @@ class InstructionDecode extends Module {
       io.readData2 := io.writeData
     }
   }.otherwise{
-    io.readData2 := registers.io.readData(1)
+    // io.readData2 := registers.io.readData(1)
+    io.readData2 := Mux(io.f_ctl_readEnable, fregisters.io.readData(0), registers.io.readData(0))
   }
   
 
