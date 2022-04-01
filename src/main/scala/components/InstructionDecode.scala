@@ -113,6 +113,8 @@ class InstructionDecode extends Module {
   val fregisterRs3 = io.id_instruction(31, 27)
   fregisters.io.readAddress(0) := registerRs1
   fregisters.io.readAddress(1) := registerRs2
+  dontTouch(fregisters.io.readAddress(1))
+  dontTouch(fregisters.io.readData(1))
   fregisters.io.readAddress(2) := fregisterRs3
   fregisters.io.writeEnable := io.f_ctl_writeEnable
   fregisters.io.writeAddress := registerRd
@@ -127,7 +129,8 @@ class InstructionDecode extends Module {
     }
   }.otherwise{
     // io.readData1 := registers.io.readData(0)
-    io.readData1 := Mux(io.f_ctl_readEnable, fregisters.io.readData(0), registers.io.readData(0))
+    // io.readData1 := Mux(io.f_ctl_readEnable, fregisters.io.readData(0), registers.io.readData(0))
+    io.readData1 := Mux(control.io.fRegRead, fregisters.io.readData(0), registers.io.readData(0))
   }
   when(io.ctl_writeEnable && (io.writeReg === registerRs2)){
     when(registerRs2 === 0.U){
@@ -137,7 +140,8 @@ class InstructionDecode extends Module {
     }
   }.otherwise{
     // io.readData2 := registers.io.readData(1)
-    io.readData2 := Mux(io.f_ctl_readEnable, fregisters.io.readData(0), registers.io.readData(0))
+    // io.readData2 := Mux(io.f_ctl_readEnable, fregisters.io.readData(0), registers.io.readData(0))
+    io.readData2 := Mux(control.io.fRegRead, fregisters.io.readData(1), registers.io.readData(1))
   }
   
 
