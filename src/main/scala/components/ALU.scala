@@ -7,10 +7,18 @@ class ALU extends Module {
     val input1: UInt = Input(UInt(32.W))
     val input2: UInt = Input(UInt(32.W))
     val aluCtl: UInt = Input(UInt(4.W))
+    val rmm:UInt = Input(UInt(3.W))
 
     val zero: Bool = Output(Bool())
     val result: UInt = Output(UInt(32.W))
   })
+
+  val falu = Module(new FALU)
+  falu.io.input1 := io.input1
+  falu.io.input2 := io.input2
+  falu.io.aluCtl := io.aluCtl
+  falu.io.rmm := io.rmm
+
   io.result := MuxCase(
     0.U,
     Array(
@@ -23,7 +31,8 @@ class ALU extends Module {
       (io.aluCtl === 6.U) -> (io.input1 << io.input2(4, 0)),
       (io.aluCtl === 7.U) -> (io.input1 >> io.input2(4, 0)),
       (io.aluCtl === 8.U) -> (io.input1.asSInt >> io.input2(4, 0)).asUInt,
-      (io.aluCtl === 9.U) -> (io.input1 ^ io.input2)
+      (io.aluCtl === 9.U) -> (io.input1 ^ io.input2),
+      (io.aluCtl > 9.U)   -> falu.io.result,
     )
   )
   io.zero := DontCare

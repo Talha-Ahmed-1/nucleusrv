@@ -146,14 +146,14 @@ class Control extends Module {
 		io.fRegWrite := 1.B
 
     List(io.aluSrc, io.memToReg, io.regWrite, io.memRead, io.memWrite, io.branch, io.jump, io.aluOp, io.aluSrc1) zip
-    List(true.B, 0.U, false.B, false.B, false.B, false.B, 0.U, 0.U, 0.U) map{ x => x._1 := x._2}
+    List(true.B, 0.U, false.B, false.B, false.B, false.B, 0.U, 1.U, 0.U) map{ x => x._1 := x._2}
 
 	}
 	.elsewhen(io.f5 === BitPat("b11110") && io.in === BitPat("b1010011")){
 		io.fRegWrite := 1.B
 
     List(io.aluSrc, io.memToReg, io.regWrite, io.memRead, io.memWrite, io.branch, io.jump, io.aluOp, io.aluSrc1) zip
-    List(true.B, 0.U, false.B, false.B, false.B, false.B, 0.U, 0.U, 0.U) map{ x => x._1 := x._2}
+    List(true.B, 0.U, false.B, false.B, false.B, false.B, 0.U, 1.U, 0.U) map{ x => x._1 := x._2}
     
 	}.otherwise{
     io.aluSrc := signals(0)

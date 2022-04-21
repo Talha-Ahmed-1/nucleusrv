@@ -78,6 +78,7 @@ class Execute extends Module {
   alu.io.input1 := aluIn1
   alu.io.input2 := aluIn2
   alu.io.aluCtl := aluCtl.io.out
+  alu.io.rmm    := io.ex_mem_ins(14,12)
   io.ALUresult := alu.io.result
 
   io.writeData := inputMux2
