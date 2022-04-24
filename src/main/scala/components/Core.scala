@@ -5,7 +5,7 @@ import chisel3.util._
 import caravan.bus.common.{AbstrRequest, AbstrResponse, BusConfig}
 import components.{RVFI, RVFIPORT}
 
-class Core(val req:AbstrRequest, val rsp:AbstrResponse)(implicit val config:BusConfig) extends Module {
+class Core(val req:AbstrRequest, val rsp:AbstrResponse)(C:Boolean = false)(implicit val config:BusConfig) extends Module {
   val io = IO(new Bundle {
     val pin: UInt = Output(UInt(32.W))
 
@@ -84,13 +84,34 @@ class Core(val req:AbstrRequest, val rsp:AbstrResponse)(implicit val config:BusC
   IF.address := pc.io.in.asUInt()
   val instruction = Mux(io.imemRsp.valid, IF.instruction, "h00000013".U(32.W))
 
+  val alignWire = Wire(UInt(32.W))
+  val pcWire = Wire(SInt(32.W))
+
+  if (C) {
+      // Instruction Aligner
+
+      val aligner = Module(new InstAligner).io
+
+      aligner.instIn := instruction
+      pc.io.in := Mux(ID.hdu_pcWrite && !MEM.io.stall, Mux(ID.pcSrc, ID.pcPlusOffset.asSInt(), Mux(aligner.compressed, pc.io.pc2, pc.io.pc4)), pc.io.out)
+
+      pcWire := Mux(aligner.compressed, pc.io.pc2, pc.io.pc4)
+      alignWire := aligner.instOut
+  }else{
+      pcWire := pc.io.pc4
+      alignWire := instruction
+      pc.io.in := Mux(ID.hdu_pcWrite && !MEM.io.stall, Mux(ID.pcSrc, ID.pcPlusOffset.asSInt(), pc.io.pc4), pc.io.out)
+  }
+
+  // aligner.instIn := instruction
+
   pc.io.halt := Mux(io.imemReq.valid, 0.B, 1.B)
-  pc.io.in := Mux(ID.hdu_pcWrite && !MEM.io.stall, Mux(ID.pcSrc, ID.pcPlusOffset.asSInt(), pc.io.pc4), pc.io.out)
+  // pc.io.in := Mux(ID.hdu_pcWrite && !MEM.io.stall, Mux(ID.pcSrc, ID.pcPlusOffset.asSInt(), Mux(aligner.compressed, pc.io.pc2, pc.io.pc4)), pc.io.out)
 
 
   when(ID.hdu_if_reg_write && !MEM.io.stall) {
     if_reg_pc := pc.io.out.asUInt()
-    if_reg_ins := instruction
+    if_reg_ins := alignWire
   }
   when(ID.ifid_flush) {
     if_reg_ins := 0.U
@@ -246,7 +267,7 @@ class Core(val req:AbstrRequest, val rsp:AbstrResponse)(implicit val config:BusC
   rvfi.io.stall := MEM.io.stall
   rvfi.io.pc := pc.io.out
   rvfi.io.pc_src := ID.pcSrc
-  rvfi.io.pc_four := pc.io.pc4
+  rvfi.io.pc_four := pcWire
   rvfi.io.pc_offset := pc.io.in
   rvfi.io.rd_wdata := wb_data
   rvfi.io.rd_addr := wb_addr
