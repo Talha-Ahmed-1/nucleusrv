@@ -7,6 +7,7 @@ class AlignerIO extends Bundle {
     val instIn = Input(UInt(32.W))
     val instOut = Output(UInt(32.W))
     val compressed = Output(Bool())
+    val half = Output(Bool())
 }
 
 class InstAligner extends Module{
@@ -20,6 +21,7 @@ class InstAligner extends Module{
     val instReg = RegInit(0.U(32.W))
 
     cDecoder.instIn := io.instIn
+    io.half := 0.B
 
     switch(case1){
         is (0.B){
@@ -54,6 +56,7 @@ class InstAligner extends Module{
         }
         is (1.B){
             cDecoder.instIn := Cat(io.instIn(15,0), instReg(31,16))
+            io.half := 1.B
             when (io.instIn(17,16) =/= 3.U){
                 instReg := io.instIn
                 case1 := true.B

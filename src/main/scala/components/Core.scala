@@ -93,9 +93,9 @@ class Core(val req:AbstrRequest, val rsp:AbstrResponse)(C:Boolean = false)(impli
       val aligner = Module(new InstAligner).io
 
       aligner.instIn := instruction
-      pc.io.in := Mux(ID.hdu_pcWrite && !MEM.io.stall, Mux(ID.pcSrc, ID.pcPlusOffset.asSInt(), Mux(aligner.compressed, pc.io.pc2, pc.io.pc4)), pc.io.out)
+      pc.io.in := Mux(ID.hdu_pcWrite && !MEM.io.stall, Mux(ID.pcSrc, ID.pcPlusOffset.asSInt(), Mux(aligner.compressed || aligner.half, pc.io.pc2, pc.io.pc4)), pc.io.out)
 
-      pcWire := Mux(aligner.compressed, pc.io.pc2, pc.io.pc4)
+      pcWire := Mux(aligner.compressed || aligner.half, pc.io.pc2, pc.io.pc4)
       alignWire := aligner.instOut
   }else{
       pcWire := pc.io.pc4
