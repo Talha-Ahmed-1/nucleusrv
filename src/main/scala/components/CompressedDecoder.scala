@@ -50,11 +50,31 @@ class CompressedDecoder extends Module{
     val RD_RS1 = Wire(UInt(5.W))
     RD_RS1 := io.instIn(9,7) + 8.U
 
-    val iImm = Wire(UInt(5.W))
+    val iImm = Wire(UInt(6.W))
     iImm := Cat(io.instIn(12), io.instIn(6,2))
 
-    // def LW      = Cat(io.instIn(5), io.instIn(12,10), io.instIn(6), "b00".U, RD_RS1, "b010".U, RS1, "b0000011".U)
-    // def SW      = Cat("b00000".U, io.instIn(5), io.instIn(12), RS1, RD_RS1, "b010".U, io.instIn(11,10), io.instIn(6), "b00".U, "b0100011".U)
+    val lwImm = Wire(UInt(5.W))
+    lwImm := Cat(io.instIn(5), io.instIn(12,10), io.instIn(6))
+
+    val sbImm = Wire(UInt(8.W))
+    sbImm := Cat(io.instIn(12,10), io.instIn(2), io.instIn(6,3))
+
+    val ujImm = Wire(UInt(11.W))
+    ujImm := Cat(io.instIn(10,7), io.instIn(2), io.instIn(6,3))
+
+    val sImm = Wire(UInt(5.W))
+    sImm := Cat(io.instIn(5), io.instIn(12,10), io.instIn(6))
+
+    def SW      = Cat(sImm(4,3), RS2, RD_RS1, ("b010".U)(3.W), sImm(2,0), ("b00".U)(2.W), ("b0100011".U)(7.W))
+    def JAL     = Cat(ujImm(9,0), ujImm(10), ("b00000000".U)(8.W), ("b00001".U)(5.W), ("b1101111".U)(7.W))
+    def BEQZ    = Cat(sbImm(7,4), ("b000".U)(3.W), ("b00000".U)(5.W), RD_RS1, sbImm(3,0), "b0".U, ("b1100011".U)(7.W))
+    def BNEZ    = Cat(sbImm(7,4), ("b001".U)(3.W), ("b00000".U)(5.W), RD_RS1, sbImm(3,0), "b0".U, ("b1100011".U)(7.W))
+    def LUI     = Cat(iImm, RD_RS1, ("b0110111".U)(7.W))
+    def SLLI    = Cat(iImm, RD_RS1, ("b001".U)(3.W), RD_RS1, ("b0010011".U)(7.W))
+    def SRLI    = Cat(iImm, RD_RS1, ("b101".U)(3.W), RD_RS1, ("b0010011".U)(7.W))
+    def SRAI    = Cat(("b0100000".U)(7.W), RD_RS1, ("b101".U)(3.W), RD_RS1, ("b0010011".U)(7.W))
+    def JALR    = Cat(0.U, ("b00000".U)(5.W), ("b000".U)(3.W), RD_RS1, ("b1100111".U)(7.W))
+    def LW      = Cat(lwImm, RD_RS1, ("b010".U)(3.W), RS2, ("b0000011".U)(7.W))
     def ADDI    = Cat(iImm, RD_RS1, ("b000".U)(3.W), RD_RS1, "b0010011".U)
     def ANDI    = Cat(iImm, RD_RS1, ("b111".U)(3.W), RD_RS1, "b0010011".U)
     def ADD     = Cat("b0000000".U, RS2, RD_RS1, ("b000".U)(3.W), RD_RS1, ("b0110011".U)(7.W))
@@ -68,34 +88,34 @@ class CompressedDecoder extends Module{
     def ILLEGAL = 0.U
 
     val cases = Array(
-        // (io.instIn(15,0) === CLW) -> LW,
+        (io.instIn(15,0) === CLW)           -> LW,
         // (io.instIn(15,0) === CLWSP) -> ,
-        // (io.instIn(15,0) === CSW) -> SW,
+        (io.instIn(15,0) === CSW)           -> SW,
         // (io.instIn(15,0) === CSWSP) -> ,        
-        // (io.instIn(15,0) === CJ) -> ,
-        // (io.instIn(15,0) === CJAL) -> ,
-        // (io.instIn(15,0) === CJR) -> ,
-        // (io.instIn(15,0) === CJALR) -> ,
-        // (io.instIn(15,0) === CBEQZ) -> ,
-        // (io.instIn(15,0) === CBNEQZ) -> ,
-        // (io.instIn(15,0) === CLI) -> ,
-        // (io.instIn(15,0) === CLUI) -> ,
-        (io.instIn(15,0) === CADDI) -> ADDI,
+        (io.instIn(15,0) === CJ)            -> JAL,
+        (io.instIn(15,0) === CJAL)          -> JAL,
+        (io.instIn(15,0) === CJR)           -> JALR,
+        (io.instIn(15,0) === CJALR)         -> JALR,
+        (io.instIn(15,0) === CBEQZ)         -> BEQZ,
+        (io.instIn(15,0) === CBNEQZ)        -> BNEZ,
+        (io.instIn(15,0) === CLI)           -> ADDI,
+        (io.instIn(15,0) === CLUI)          -> LUI,
+        (io.instIn(15,0) === CADDI)         -> ADDI,
         // (io.instIn(15,0) === CADDI16SP) -> ,
         // (io.instIn(15,0) === CADDI4SPN) -> ,
-        // (io.instIn(15,0) === CSLLI) -> ,
-        // (io.instIn(15,0) === CSRLI) -> ,
-        // (io.instIn(15,0) === CSRAI) -> ,
-        (io.instIn(15,0) === CANDI) -> ANDI,
-        (io.instIn(15,0) === CMV) -> MV,
-        (io.instIn(15,0) === CADD) -> ADD,
-        (io.instIn(15,0) === CAND) -> AND,
-        (io.instIn(15,0) === COR) -> OR,
-        (io.instIn(15,0) === CXOR) -> XOR,
-        (io.instIn(15,0) === CSUB) -> SUB,
-        (io.instIn(15,0) === CNOP) -> NOP,
-        (io.instIn(15,0) === CEBREAK) -> EBREAK,
-        (io.instIn(15,0) === CILLEGAL) -> ILLEGAL)
+        (io.instIn(15,0) === CSLLI)         -> SLLI,
+        (io.instIn(15,0) === CSRLI)         -> SRLI,
+        (io.instIn(15,0) === CSRAI)         -> SRAI,
+        (io.instIn(15,0) === CANDI)         -> ANDI,
+        (io.instIn(15,0) === CMV)           -> MV,
+        (io.instIn(15,0) === CADD)          -> ADD,
+        (io.instIn(15,0) === CAND)          -> AND,
+        (io.instIn(15,0) === COR)           -> OR,
+        (io.instIn(15,0) === CXOR)          -> XOR,
+        (io.instIn(15,0) === CSUB)          -> SUB,
+        (io.instIn(15,0) === CNOP)          -> NOP,
+        (io.instIn(15,0) === CEBREAK)       -> EBREAK,
+        (io.instIn(15,0) === CILLEGAL)      -> ILLEGAL)
 
     io.instOut := MuxCase(io.instIn, cases)
     io.compressed := io.instIn =/= io.instOut
