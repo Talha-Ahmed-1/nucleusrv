@@ -141,15 +141,21 @@ class Control extends Module {
   io.fRegRead := 0.B
   io.fRegWrite := 0.B
 
-  when(io.f5 === BitPat("b00000") && io.in === BitPat("b1010011")){
+  when((io.f5 === BitPat("b00000") || io.f5 === BitPat("b00010") ||  io.f5 === BitPat("b00001")) && io.in === BitPat("b1010011")){
 		io.fRegRead := 1.B
 		io.fRegWrite := 1.B
 
     List(io.aluSrc, io.memToReg, io.regWrite, io.memRead, io.memWrite, io.branch, io.jump, io.aluOp, io.aluSrc1) zip
     List(true.B, 0.U, false.B, false.B, false.B, false.B, 0.U, 0.U, 0.U) map{ x => x._1 := x._2}
 
-	}
-	.elsewhen(io.f5 === BitPat("b11110") && io.in === BitPat("b1010011")){
+	}.elsewhen(io.in === BitPat("b1000011")||io.in === BitPat("b1000111")||io.in === BitPat("b1001011")||io.in === BitPat("b1001111")){
+		io.fRegWrite := 1.B
+    io.fRegRead := 1.B
+
+    List(io.aluSrc, io.memToReg, io.regWrite, io.memRead, io.memWrite, io.branch, io.jump, io.aluOp, io.aluSrc1) zip
+    List(true.B, 0.U, false.B, false.B, false.B, false.B, 0.U, 0.U, 0.U) map{ x => x._1 := x._2}
+
+  }.elsewhen(io.f5 === BitPat("b11110") && io.in === BitPat("b1010011")){
 		io.fRegWrite := 1.B
 
     List(io.aluSrc, io.memToReg, io.regWrite, io.memRead, io.memWrite, io.branch, io.jump, io.aluOp, io.aluSrc1) zip

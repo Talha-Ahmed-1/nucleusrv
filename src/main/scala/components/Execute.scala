@@ -14,6 +14,10 @@ class Execute extends Module {
     val mem_result = Input(UInt(32.W))
     val wb_result = Input(UInt(32.W))
 
+    val readData3 = Input(UInt(32.W)) //changes
+    val f5 = Input(UInt(5.W))    //change
+    val opcode = Input(UInt(7.W))  //change
+
     val ex_mem_regWrite = Input(Bool())
     val mem_wb_regWrite = Input(Bool())
     ////
@@ -49,6 +53,7 @@ class Execute extends Module {
   fu.mem_reg_rd := io.mem_wb_ins(11, 7)
   fu.reg_rs1 := io.id_ex_ins(19, 15)
   fu.reg_rs2 := io.id_ex_ins(24, 20)
+  fu.reg_rs3 := io.id_ex_ins(31, 27)
 
   val inputMux1 = MuxCase(
     0.U,
@@ -66,9 +71,18 @@ class Execute extends Module {
       (fu.forwardB === 2.U) -> (io.wb_result)
     )
   )
+  val inputMux3 = MuxCase(
+    0.U,
+    Array(
+      (fu.forwardC === 0.U) -> (io.readData3),
+      (fu.forwardC === 1.U) -> (io.mem_result),
+      (fu.forwardC === 2.U) -> (io.wb_result)
+    )
+  )
 
   val aluIn1 = Mux(io.ctl_aluSrc1 === 1.U, io.pcAddress, inputMux1 )
   val aluIn2 = Mux(io.ctl_aluSrc, inputMux2, io.immediate)
+  
 
   aluCtl.io.f3 := io.func3
   aluCtl.io.f7 := io.func7
@@ -77,7 +91,10 @@ class Execute extends Module {
 
   alu.io.input1 := aluIn1
   alu.io.input2 := aluIn2
+  alu.io.input3:= inputMux3       //changes
   alu.io.aluCtl := aluCtl.io.out
+  alu.io.f5:= io.f5               //changes
+  alu.io.opcode := io.opcode      //changes
   io.ALUresult := alu.io.result
 
   io.writeData := inputMux2

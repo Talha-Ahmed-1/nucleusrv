@@ -25,6 +25,7 @@ class Core(val req:AbstrRequest, val rsp:AbstrResponse)(implicit val config:BusC
   val id_reg_pc = RegInit(0.U(32.W))
   val id_reg_rd1 = RegInit(0.U(32.W))
   val id_reg_rd2 = RegInit(0.U(32.W))
+  val id_reg_rd3 = RegInit(0.U(32.W)) //changes
   val id_reg_imm = RegInit(0.U(32.W))
   val id_reg_wra = RegInit(0.U(5.W))
   val id_reg_f7 = RegInit(0.U(1.W))
@@ -35,6 +36,9 @@ class Core(val req:AbstrRequest, val rsp:AbstrResponse)(implicit val config:BusC
   val id_reg_ctl_memToReg = RegInit(0.U(2.W))
   val id_reg_ctl_regWrite = RegInit(false.B)
   val id_reg_ctl_memRead = RegInit(false.B)
+
+  val id_reg_f5 = RegInit(0.U(5.W))       //changes
+  val id_reg_opcode = RegInit(0.U(7.W))   //changes
 
   val id_reg_ctl_memWrite = RegInit(false.B)
   val id_reg_f_ctl_regWrite = RegInit(false.B)
@@ -116,10 +120,15 @@ class Core(val req:AbstrRequest, val rsp:AbstrResponse)(implicit val config:BusC
 
   id_reg_rd1 := ID.readData1
   id_reg_rd2 := ID.readData2
+  id_reg_rd3 := ID.readData3 //changes
   id_reg_imm := ID.immediate
   id_reg_wra := ID.writeRegAddress
   id_reg_f3 := ID.func3
   id_reg_f7 := ID.func7
+
+  id_reg_f5 := ID.f5          //changes
+  id_reg_opcode := ID.opcode    //changes
+
   id_reg_ins := if_reg_ins
   id_reg_pc := if_reg_pc
   id_reg_ctl_aluSrc := ID.ctl_aluSrc
@@ -160,9 +169,15 @@ class Core(val req:AbstrRequest, val rsp:AbstrResponse)(implicit val config:BusC
   EX.immediate := id_reg_imm
   EX.readData1 := id_reg_rd1
   EX.readData2 := id_reg_rd2
+  EX.readData3 := id_reg_rd3 //changes
   EX.pcAddress := id_reg_pc
   EX.func3 := id_reg_f3
   EX.func7 := id_reg_f7
+
+  EX.f5 := id_reg_f5            //changes
+  EX.opcode := id_reg_opcode    //changes
+
+
   EX.ctl_aluSrc := id_reg_ctl_aluSrc
   EX.ctl_aluOp := id_reg_ctl_aluOp
   EX.ctl_aluSrc1 := id_reg_ctl_aluSrc1

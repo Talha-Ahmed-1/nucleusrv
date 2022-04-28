@@ -36,6 +36,10 @@ class InstructionDecode extends Module {
     val ctl_aluSrc = Output(Bool())
     val ctl_memToReg = Output(UInt(2.W))
 
+    val readData3 = Output(UInt(32.W))
+    val f5 = Output(UInt(5.W))    //change
+    val opcode = Output(UInt(7.W))  //change
+
     val ctl_regWrite = Output(Bool())
     val f_ctl_regWrite = Output(Bool())
     val f_ctl_regRead = Output(Bool())
@@ -143,6 +147,11 @@ class InstructionDecode extends Module {
     // io.readData2 := Mux(io.f_ctl_readEnable, fregisters.io.readData(0), registers.io.readData(0))
     io.readData2 := Mux(control.io.fRegRead, fregisters.io.readData(1), registers.io.readData(1))
   }
+  when(control.io.fRegRead){                  //changes
+    io.readData3:=fregisters.io.readData(2)
+  }.otherwise{
+    io.readData3:=0.U
+  }
   
 
   val immediate = Module(new ImmediateGen)
@@ -201,4 +210,6 @@ class InstructionDecode extends Module {
   io.writeRegAddress := io.id_instruction(11, 7)
   io.func3 := io.id_instruction(14, 12)
   io.func7 := io.id_instruction(30)
+  io.f5 := io.id_instruction(31, 27) //changes
+  io.opcode :=io.id_instruction(6, 0) //changes
 }
