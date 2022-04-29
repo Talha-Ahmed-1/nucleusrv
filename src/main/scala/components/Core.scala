@@ -322,4 +322,18 @@ class Core(val req:AbstrRequest, val rsp:AbstrResponse)(C:Boolean = false)(impli
       Mux(mem_reg_ctl_regWrite, mem_reg_wra, 0.U),
       Mux(mem_reg_ctl_regWrite, wb_data, 0.U))
 //  }
+  val rvfi = Module(new RVFI)
+  rvfi.io.stall := MEM.io.stall
+  rvfi.io.pc := pc.io.out
+  rvfi.io.pc_src := ID.pcSrc
+  rvfi.io.pc_four := pcWire
+  rvfi.io.pc_offset := pc.io.in
+  rvfi.io.rd_wdata := wb_data
+  rvfi.io.rd_addr := wb_addr
+  rvfi.io.rs1_rdata := ID.readData1
+  rvfi.io.rs2_rdata := ID.readData2
+  rvfi.io.insn := if_reg_ins
+
+  io.rvfi <> rvfi.io.rvfi
+
 }
