@@ -27,6 +27,7 @@ class Core(val req:AbstrRequest, val rsp:AbstrResponse)(C:Boolean = false)(impli
   val id_reg_pc = RegInit(0.U(32.W))
   val id_reg_rd1 = RegInit(0.U(32.W))
   val id_reg_rd2 = RegInit(0.U(32.W))
+  val id_reg_rd3 = RegInit(0.U(32.W)) //changes
   val id_reg_imm = RegInit(0.U(32.W))
   val id_reg_wra = RegInit(0.U(5.W))
   val id_reg_f7 = RegInit(0.U(1.W))
@@ -37,7 +38,15 @@ class Core(val req:AbstrRequest, val rsp:AbstrResponse)(C:Boolean = false)(impli
   val id_reg_ctl_memToReg = RegInit(0.U(2.W))
   val id_reg_ctl_regWrite = RegInit(false.B)
   val id_reg_ctl_memRead = RegInit(false.B)
+
+  val id_reg_f5 = RegInit(0.U(5.W))       //changes
+  val id_reg_opcode = RegInit(0.U(7.W))   //changes
+
   val id_reg_ctl_memWrite = RegInit(false.B)
+  val id_reg_f_ctl_regWrite = RegInit(false.B)
+  val id_reg_f_ctl_regRead = RegInit(false.B)
+
+
   val id_reg_ctl_branch = RegInit(false.B)
   val id_reg_ctl_aluOp = RegInit(0.U(2.W))
   val id_reg_ctl_jump = RegInit(0.U(2.W))
@@ -52,7 +61,12 @@ class Core(val req:AbstrRequest, val rsp:AbstrResponse)(C:Boolean = false)(impli
   val ex_reg_ctl_memToReg = RegInit(0.U(2.W))
   val ex_reg_ctl_regWrite = RegInit(false.B)
   val ex_reg_ctl_memRead = RegInit(false.B)
+
   val ex_reg_ctl_memWrite = RegInit(false.B)
+  val ex_reg_f_ctl_regWrite = RegInit(false.B)
+  val ex_reg_f_ctl_regRead = RegInit(false.B)
+  
+
   val ex_reg_ctl_branch_taken = RegInit(false.B)
   val ex_reg_pc = RegInit(0.U(32.W))
 
@@ -64,6 +78,10 @@ class Core(val req:AbstrRequest, val rsp:AbstrResponse)(C:Boolean = false)(impli
   val mem_reg_wra = RegInit(0.U(5.W))
   val mem_reg_ctl_memToReg = RegInit(0.U(2.W))
   val mem_reg_ctl_regWrite = RegInit(false.B)
+
+  val mem_reg_f_ctl_regWrite = RegInit(false.B)
+  val mem_reg_f_ctl_regRead = RegInit(false.B)
+
   val mem_reg_pc = RegInit(0.U(32.W))
 
   //Pipeline Units
@@ -124,17 +142,29 @@ class Core(val req:AbstrRequest, val rsp:AbstrResponse)(C:Boolean = false)(impli
 
   id_reg_rd1 := ID.readData1
   id_reg_rd2 := ID.readData2
+  id_reg_rd3 := ID.readData3 //changes
   id_reg_imm := ID.immediate
   id_reg_wra := ID.writeRegAddress
   id_reg_f3 := ID.func3
   id_reg_f7 := ID.func7
+
+  id_reg_f5 := ID.f5          //changes
+  id_reg_opcode := ID.opcode    //changes
+
   id_reg_ins := if_reg_ins
   id_reg_pc := if_reg_pc
   id_reg_ctl_aluSrc := ID.ctl_aluSrc
   id_reg_ctl_memToReg := ID.ctl_memToReg
   id_reg_ctl_regWrite := ID.ctl_regWrite
+
+  id_reg_f_ctl_regWrite := ID.f_ctl_regWrite
+  id_reg_f_ctl_regRead := ID.f_ctl_regRead
+
   id_reg_ctl_memRead := ID.ctl_memRead
+
   id_reg_ctl_memWrite := ID.ctl_memWrite
+  id_reg_ctl_memWrite := ID.ctl_memWrite
+
   id_reg_ctl_branch := ID.ctl_branch
   id_reg_ctl_aluOp := ID.ctl_aluOp
   id_reg_ctl_jump := ID.ctl_jump
@@ -162,9 +192,15 @@ class Core(val req:AbstrRequest, val rsp:AbstrResponse)(C:Boolean = false)(impli
   EX.immediate := id_reg_imm
   EX.readData1 := id_reg_rd1
   EX.readData2 := id_reg_rd2
+  EX.readData3 := id_reg_rd3 //changes
   EX.pcAddress := id_reg_pc
   EX.func3 := id_reg_f3
   EX.func7 := id_reg_f7
+
+  EX.f5 := id_reg_f5            //changes
+  EX.opcode := id_reg_opcode    //changes
+
+
   EX.ctl_aluSrc := id_reg_ctl_aluSrc
   EX.ctl_aluOp := id_reg_ctl_aluOp
   EX.ctl_aluSrc1 := id_reg_ctl_aluSrc1
@@ -175,6 +211,10 @@ class Core(val req:AbstrRequest, val rsp:AbstrResponse)(C:Boolean = false)(impli
   ex_reg_ins := id_reg_ins
   ex_reg_ctl_memToReg := id_reg_ctl_memToReg
   ex_reg_ctl_regWrite := id_reg_ctl_regWrite
+
+  ex_reg_f_ctl_regWrite := id_reg_f_ctl_regWrite
+  ex_reg_f_ctl_regRead := id_reg_f_ctl_regRead
+
 //  ex_reg_ctl_memRead := id_reg_ctl_memRead
 //  ex_reg_ctl_memWrite := id_reg_ctl_memWrite
   ID.id_ex_mem_read := id_reg_ctl_memRead
@@ -206,8 +246,11 @@ class Core(val req:AbstrRequest, val rsp:AbstrResponse)(C:Boolean = false)(impli
     ex_reg_wra := ex_reg_wra
     ex_reg_ctl_memToReg := ex_reg_ctl_memToReg
 //    mem_reg_ctl_memToReg := mem_reg_ctl_memToReg
-    ex_reg_ctl_regWrite := ex_reg_ctl_regWrite
-    mem_reg_ctl_regWrite := ex_reg_ctl_regWrite
+    mem_reg_ctl_regWrite := mem_reg_ctl_regWrite
+
+    mem_reg_f_ctl_regWrite := mem_reg_f_ctl_regWrite
+    mem_reg_f_ctl_regRead := mem_reg_f_ctl_regRead
+
     mem_reg_ins := mem_reg_ins
     mem_reg_pc := mem_reg_pc
 
@@ -219,6 +262,10 @@ class Core(val req:AbstrRequest, val rsp:AbstrResponse)(C:Boolean = false)(impli
     mem_reg_result := ex_reg_result
 //    mem_reg_ctl_memToReg := ex_reg_ctl_memToReg
     mem_reg_ctl_regWrite := ex_reg_ctl_regWrite
+
+    mem_reg_f_ctl_regWrite := ex_reg_f_ctl_regWrite
+    mem_reg_f_ctl_regRead := ex_reg_f_ctl_regRead
+
     mem_reg_ins := ex_reg_ins
     mem_reg_pc := ex_reg_pc
     mem_reg_wra := ex_reg_wra
@@ -228,6 +275,10 @@ class Core(val req:AbstrRequest, val rsp:AbstrResponse)(C:Boolean = false)(impli
   mem_reg_wra := ex_reg_wra
   mem_reg_ctl_memToReg := ex_reg_ctl_memToReg
   EX.ex_mem_regWrite := ex_reg_ctl_regWrite
+
+  EX.ex_mem_f_regWrite := ex_reg_f_ctl_regWrite
+  EX.ex_mem_f_regRead := ex_reg_f_ctl_regRead
+
   MEM.io.aluResultIn := ex_reg_result
   MEM.io.writeData := ex_reg_wd
   MEM.io.readEnable := ex_reg_ctl_memRead
@@ -261,21 +312,14 @@ class Core(val req:AbstrRequest, val rsp:AbstrResponse)(C:Boolean = false)(impli
   ID.ctl_writeEnable := mem_reg_ctl_regWrite
   io.pin := wb_data
 
+  EX.mem_wb_f_regWrite := mem_reg_f_ctl_regWrite
+  ID.f_ctl_writeEnable := mem_reg_f_ctl_regWrite
 
-
-  val rvfi = Module(new RVFI)
-  rvfi.io.stall := MEM.io.stall
-  rvfi.io.pc := pc.io.out
-  rvfi.io.pc_src := ID.pcSrc
-  rvfi.io.pc_four := pcWire
-  rvfi.io.pc_offset := pc.io.in
-  rvfi.io.rd_wdata := wb_data
-  rvfi.io.rd_addr := wb_addr
-  rvfi.io.rs1_rdata := ID.readData1
-  rvfi.io.rs2_rdata := ID.readData2
-  rvfi.io.insn := if_reg_ins
-
-  io.rvfi <> rvfi.io.rvfi
-
-
+  EX.mem_wb_f_regRead := mem_reg_f_ctl_regRead
+  ID.f_ctl_readEnable := mem_reg_f_ctl_regRead
+//  when(ex_reg_ins =/= 0.U && ex_reg_pc =/= 0.U ) {
+    printf("PC: %x, INST: %x, REG[%d] <- %x\n", ex_reg_pc, ex_reg_ins,
+      Mux(mem_reg_ctl_regWrite, mem_reg_wra, 0.U),
+      Mux(mem_reg_ctl_regWrite, wb_data, 0.U))
+//  }
 }

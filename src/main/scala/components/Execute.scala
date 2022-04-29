@@ -14,8 +14,18 @@ class Execute extends Module {
     val mem_result = Input(UInt(32.W))
     val wb_result = Input(UInt(32.W))
 
+    val readData3 = Input(UInt(32.W)) //changes
+    val f5 = Input(UInt(5.W))    //change
+    val opcode = Input(UInt(7.W))  //change
+
     val ex_mem_regWrite = Input(Bool())
     val mem_wb_regWrite = Input(Bool())
+    ////
+    val mem_wb_f_regWrite = Input(Bool())
+    val mem_wb_f_regRead = Input(Bool())
+    val ex_mem_f_regWrite = Input(Bool())
+    val ex_mem_f_regRead = Input(Bool())
+    ////
     val id_ex_ins = Input(UInt(32.W))
     val ex_mem_ins = Input(UInt(32.W))
     val mem_wb_ins = Input(UInt(32.W))
@@ -33,13 +43,17 @@ class Execute extends Module {
   val fu = Module(new ForwardingUnit).io
 
   // Forwarding Unt
-
+  //
+  fu.ex_f_regWrite := io.ex_mem_f_regWrite
+  fu.mem_f_regWrite := io.mem_wb_f_regWrite
+  //
   fu.ex_regWrite := io.ex_mem_regWrite
   fu.mem_regWrite := io.mem_wb_regWrite
   fu.ex_reg_rd := io.ex_mem_ins(11, 7)
   fu.mem_reg_rd := io.mem_wb_ins(11, 7)
   fu.reg_rs1 := io.id_ex_ins(19, 15)
   fu.reg_rs2 := io.id_ex_ins(24, 20)
+  fu.reg_rs3 := io.id_ex_ins(31, 27)
 
   val inputMux1 = MuxCase(
     0.U,
@@ -57,6 +71,14 @@ class Execute extends Module {
       (fu.forwardB === 2.U) -> (io.wb_result)
     )
   )
+  val inputMux3 = MuxCase(
+    0.U,
+    Array(
+      (fu.forwardC === 0.U) -> (io.readData3),
+      (fu.forwardC === 1.U) -> (io.mem_result),
+      (fu.forwardC === 2.U) -> (io.wb_result)
+    )
+  )
 
   val aluIn1 = MuxCase(
     inputMux1,
@@ -66,6 +88,7 @@ class Execute extends Module {
     )
   )
   val aluIn2 = Mux(io.ctl_aluSrc, inputMux2, io.immediate)
+  
 
   aluCtl.io.f3 := io.func3
   aluCtl.io.f7 := io.func7
@@ -74,7 +97,10 @@ class Execute extends Module {
 
   alu.io.input1 := aluIn1
   alu.io.input2 := aluIn2
+  alu.io.input3:= inputMux3       //changes
   alu.io.aluCtl := aluCtl.io.out
+  alu.io.f5:= io.f5               //changes
+  alu.io.opcode := io.opcode      //changes
   io.ALUresult := alu.io.result
 
   io.writeData := inputMux2
