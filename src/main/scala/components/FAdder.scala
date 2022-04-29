@@ -2,7 +2,7 @@ package nucleusrv.components
 import chisel3._
 import chisel3.util._
 
-class NFALU extends Module {
+class FAdder extends Module {
   val io = IO(new Bundle {
     val input1: UInt = Input(UInt(32.W))
     val input2: UInt = Input(UInt(32.W))
@@ -167,122 +167,7 @@ class NFALU extends Module {
         temFrac := o_mant
         temExp := o_exp
     }
-    io.result:=Cat(o_sign,temExp,temFrac(22,0))
-
-    // resFrac := 0.U
-    // resExp := 0.U
-    // temFrac := 0.U
-    // temExp := 0.U
-    // tmp_mant := 0.U
-    
-
-    // when(expBitIn1 === expBitIn2){
-    //     when(xorSign && (fracBitIn1 === fracBitIn2)){
-    //         io.result := 0.U
-    //     }.elsewhen(xorSign && (fracBitIn1 > fracBitIn2)){
-    //         resFrac := (Cat(0.B, fracBitIn1)) - (Cat(0.B, fracBitIn2))
-    //         resExp := expBitIn1
-    //         io.result := Cat(signBitIn1, temExp, temFrac(22,0))
-    //     }.elsewhen(xorSign && (fracBitIn1 < fracBitIn2)){
-    //         resFrac := (Cat(0.B, fracBitIn2)) - (Cat(0.B, fracBitIn1))
-    //         resExp := expBitIn1
-    //         io.result := Cat(signBitIn2, temExp, temFrac(22,0))
-    //     }.otherwise{
-    //         when(fracBitIn1 === fracBitIn2){
-    //             resFrac := fracBitIn1
-    //         }.otherwise{
-    //             resFrac := (Cat(0.B, fracBitIn1) + Cat(0.B, fracBitIn2)) >> 1.U
-    //         }
-    //         resExp := expBitIn1 + 1.U
-    //         io.result := Cat(andSign, resExp, resFrac(22,0))
-    //     }
-    // }
-    // .elsewhen(expBitIn1 > expBitIn2){
-    //     val diff = WireInit(expBitIn1 - expBitIn2)
-    //     when(diff === 2.U){
-    //         val shiftDiff = Wire(UInt(2.W))
-    //         shiftDiff := fracBitIn2(1,0)
-    //         dontTouch(shiftDiff)
-
-            
-    //        // val tmp_mant = Wire(UInt(23.W))
-    //         tmp_mant := Cat(signBitIn2,fracBitIn2) >> diff
-    //         dontTouch(tmp_mant)
-
-    //         val o_mant = Wire(UInt(24.W))
-
-    //         val o_man = Wire(UInt(23.W))
-    //         o_man:=0.U
-
-    //         o_mant := Cat(0.U,fracBitIn1)+ Cat(0.U,tmp_mant)
-
-    //         when(o_mant(23)=== 1.U){
-    //             o_man:= Cat(0.U,o_mant(22,0))>>1.U
-    //             resExp:=expBitIn1 +1.U
-    //             resFrac := o_man
-    //         }.otherwise{
-    //             when(signBitIn1===1.U && signBitIn2===1.U){
-    //                 resFrac:= o_mant
-    //                 resExp := expBitIn1
-    //             }.otherwise{
-    //                 o_man:= Cat((o_mant(22,21)+1.U),o_mant(20,0))
-    //                 resExp := expBitIn1
-    //                 resFrac := o_man
-    //             }
-    //         }
-            
-    //         //resFrac := o_man
-    //         //resExp := expBitIn1
-    //         io.result := Cat(andSign, resExp, resFrac(22,0))
-    //     }
-    //     .elsewhen(diff === 3.U){
-    //         val shiftDiff = Wire(UInt(3.W))
-    //         shiftDiff := fracBitIn2(2,0)
-    //         dontTouch(shiftDiff)
-
-            
-    //        // val tmp_mant = Wire(UInt(23.W))
-    //         tmp_mant := Cat(signBitIn2,fracBitIn2) >> diff
-    //         dontTouch(tmp_mant)
-
-    //         val o_mant = Wire(UInt(24.W))
-
-    //         val o_man = Wire(UInt(23.W))
-    //         o_man:=0.U
-
-    //         o_mant := Cat(0.U,fracBitIn1)+ Cat(0.U,tmp_mant)
-
-    //         when(o_mant(23)=== 1.U){
-    //             o_man:= Cat(0.U,o_mant(22,0))>>1.U
-    //             resExp:=expBitIn1 +1.U
-    //         }.otherwise{
-    //             when(signBitIn1===1.U && signBitIn2===1.U){
-    //                 resFrac:= o_mant
-    //                 resExp := expBitIn1
-    //             }.otherwise{
-    //                 o_man:= Cat((o_mant(22,20)+1.U),o_mant(19,0))
-    //                 resExp := expBitIn1
-    //             }
-    //         }
-            
-    //         resFrac := o_man
-    //         //resExp := expBitIn1
-    //         io.result := Cat(andSign, resExp, resFrac(22,0))
-    //     }
-       
-    //     .otherwise{
-    //         io.result := 0.U
-    //     }
-
-    // }
-    // .otherwise{
-    //     io.result := 0.U
-    // }
-    
-
-
-   
- 
+    io.result:=Cat(o_sign,temExp,temFrac(22,0)) 
 
 }
 

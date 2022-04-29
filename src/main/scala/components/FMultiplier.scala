@@ -2,7 +2,7 @@ package nucleusrv.components
 import chisel3._
 import chisel3.util._
 
-class mul extends Module {
+class FMultiplier extends Module {
   val io = IO(new Bundle {
     val input1: UInt = Input(UInt(32.W))
     val input2: UInt = Input(UInt(32.W))

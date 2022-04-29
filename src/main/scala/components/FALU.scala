@@ -15,8 +15,8 @@ class FALU extends Module {
   })
 
   
-        val add = Module(new NFALU)
-        val mult = Module(new mul)
+        val add = Module(new FAdder)
+        val mult = Module(new FMultiplier)
         add.io.input1:=0.U
         add.io.input2 := 0.U
         mult.io.input1:=0.U
