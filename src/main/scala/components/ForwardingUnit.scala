@@ -29,7 +29,7 @@ class ForwardingUnit extends Module {
   when(io.reg_rs1 === io.ex_reg_rd && io.ex_reg_rd =/= 0.U && (io.ex_regWrite || io.ex_f_regWrite)) {
     io.forwardA := 1.U
   }.elsewhen(
-      io.reg_rs1 === io.mem_reg_rd && io.mem_reg_rd =/= 0.U && io.mem_regWrite
+      io.reg_rs1 === io.mem_reg_rd && io.mem_reg_rd =/= 0.U && (io.mem_regWrite || io.mem_f_regWrite) 
     ) {
       io.forwardA := 2.U
     }
@@ -40,7 +40,7 @@ class ForwardingUnit extends Module {
   when(io.reg_rs2 === io.ex_reg_rd && io.ex_reg_rd =/= 0.U && (io.ex_regWrite || io.ex_f_regWrite)) {
     io.forwardB := 1.U
   }.elsewhen(
-      io.reg_rs2 === io.mem_reg_rd && io.mem_reg_rd =/= 0.U && io.mem_regWrite
+      io.reg_rs2 === io.mem_reg_rd && io.mem_reg_rd =/= 0.U && (io.mem_regWrite || io.mem_f_regWrite) 
     ) {
       io.forwardB := 2.U
     }
@@ -51,7 +51,7 @@ class ForwardingUnit extends Module {
   when(io.reg_rs3 === io.ex_reg_rd && io.ex_reg_rd =/= 0.U && (io.ex_regWrite || io.ex_f_regWrite)) {
     io.forwardC := 1.U
   }.elsewhen(
-      io.reg_rs3 === io.mem_reg_rd && io.mem_reg_rd =/= 0.U && io.mem_regWrite
+      io.reg_rs3 === io.mem_reg_rd && io.mem_reg_rd =/= 0.U && (io.mem_regWrite || io.mem_f_regWrite) 
     ) {
       io.forwardC := 2.U
     }
