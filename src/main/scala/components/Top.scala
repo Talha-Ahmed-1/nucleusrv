@@ -48,7 +48,7 @@ class Top(programFile:Option[String]) extends Module{
 
   implicit val config = TilelinkConfig(32, 32) //WishboneConfig(32,32)
 
-  val core: Core = Module(new Core(/*req, rsp*/ new TLRequest /*WBRequest*/,new TLResponse /*WBResponse*/)(C = true))
+  val core: Core = Module(new Core(/*req, rsp*/ new TLRequest /*WBRequest*/,new TLResponse /*WBResponse*/)(C = true, F = true))
   val imemAdapter = Module(new TilelinkAdapter() /*TilelinkAdapter()*/) //instrAdapter
   val dmemAdapter = Module(new TilelinkAdapter() /*WishboneAdapter()*/) //dmemAdapter
 

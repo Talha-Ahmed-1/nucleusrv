@@ -3,7 +3,7 @@ package nucleusrv.components
 import chisel3._
 import chisel3.util.MuxCase
 
-class Execute extends Module {
+class Execute(F:Boolean = false) extends Module {
   val io = IO(new Bundle {
     val immediate = Input(UInt(32.W))
     val readData1 = Input(UInt(32.W))
@@ -38,7 +38,7 @@ class Execute extends Module {
     val ALUresult = Output(UInt(32.W))
   })
 
-  val alu = Module(new ALU)
+  val alu = Module(new ALU(F=F))
   val aluCtl = Module(new AluControl)
   val fu = Module(new ForwardingUnit).io
 
