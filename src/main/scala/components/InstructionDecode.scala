@@ -2,7 +2,7 @@
 package nucleusrv.components
 import chisel3._
 
-class InstructionDecode extends Module {
+class InstructionDecode(F:Boolean = false) extends Module {
   val io = IO(new Bundle {
     val id_instruction = Input(UInt(32.W))
     val writeData = Input(UInt(32.W))
@@ -114,19 +114,30 @@ class InstructionDecode extends Module {
   registers.io.writeAddress := registerRd
   registers.io.writeData := io.writeData
 
-  // F Register File
-  val fregisters = Module(new FRegisters)
-  // val fregisterRs1 = io.id_instruction(19, 15)
-  // val fregisterRs2 = io.id_instruction(24, 20)
   val fregisterRs3 = io.id_instruction(31, 27)
-  fregisters.io.readAddress(0) := registerRs1
-  fregisters.io.readAddress(1) := registerRs2
-  dontTouch(fregisters.io.readAddress(1))
-  dontTouch(fregisters.io.readData(1))
-  fregisters.io.readAddress(2) := fregisterRs3
-  fregisters.io.writeEnable := io.f_ctl_writeEnable
-  fregisters.io.writeAddress := registerRd
-  fregisters.io.writeData := io.writeData
+  val rd0Wire = Wire(UInt(32.W))
+  val rd1Wire = Wire(UInt(32.W))
+  val rd2Wire = Wire(UInt(32.W))
+
+  // F Register File
+  if (F){
+      val fregisters = Module(new FRegisters)
+      
+      fregisters.io.readAddress(0) := registerRs1
+      fregisters.io.readAddress(1) := registerRs2
+      fregisters.io.readAddress(2) := fregisterRs3
+      fregisters.io.writeEnable := io.f_ctl_writeEnable
+      fregisters.io.writeAddress := registerRd
+      fregisters.io.writeData := io.writeData
+
+      rd0Wire := fregisters.io.readData(0)
+      rd1Wire := fregisters.io.readData(1)
+      rd2Wire := fregisters.io.readData(2)
+  }else{
+      rd0Wire := DontCare
+      rd1Wire := DontCare
+      rd2Wire := DontCare
+  }
 
   //Forwarding to fix structural hazard
   when(io.ctl_writeEnable && (io.writeReg === registerRs1)){
@@ -138,7 +149,7 @@ class InstructionDecode extends Module {
   }.otherwise{
     // io.readData1 := registers.io.readData(0)
     // io.readData1 := Mux(io.f_ctl_readEnable, fregisters.io.readData(0), registers.io.readData(0))
-    io.readData1 := Mux(control.io.fRegRead, fregisters.io.readData(0), registers.io.readData(0))
+    io.readData1 := Mux(control.io.fRegRead, rd0Wire, registers.io.readData(0))
   }
   when(io.ctl_writeEnable && (io.writeReg === registerRs2)){
     when(registerRs2 === 0.U){
@@ -149,12 +160,12 @@ class InstructionDecode extends Module {
   }.otherwise{
     // io.readData2 := registers.io.readData(1)
     // io.readData2 := Mux(io.f_ctl_readEnable, fregisters.io.readData(0), registers.io.readData(0))
-    io.readData2 := Mux(control.io.fRegRead, fregisters.io.readData(1), registers.io.readData(1))
+    io.readData2 := Mux(control.io.fRegRead, rd1Wire, registers.io.readData(1))
   }
   when(control.io.fRegRead){                  //changes
-    io.readData3:=fregisters.io.readData(2)
+    io.readData3 := rd2Wire
   }.otherwise{
-    io.readData3:=0.U
+    io.readData3 := 0.U
   }
   
 
