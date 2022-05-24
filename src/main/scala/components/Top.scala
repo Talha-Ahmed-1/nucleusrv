@@ -46,11 +46,11 @@ class Top(programFile:Option[String]) extends Module{
     val rvfi = new RVFIPORT
   })
 
-  implicit val config = TilelinkConfig(32, 32) //WishboneConfig(32,32)
+  implicit val config = WishboneConfig(32,32)//TilelinkConfig(32, 32)
 
-  val core: Core = Module(new Core(/*req, rsp*/ new TLRequest /*WBRequest*/,new TLResponse /*WBResponse*/)(C = true, F = true))
-  val imemAdapter = Module(new TilelinkAdapter() /*TilelinkAdapter()*/) //instrAdapter
-  val dmemAdapter = Module(new TilelinkAdapter() /*WishboneAdapter()*/) //dmemAdapter
+  val core: Core = Module(new Core(/*req, rsp*/ new WBRequest /*WBRequest*/,new WBResponse /*WBResponse*/)(M = true, C = true, F = true))
+  val imemAdapter = Module(new WishboneAdapter() /*TilelinkAdapter()*/) //instrAdapter
+  val dmemAdapter = Module(new WishboneAdapter() /*WishboneAdapter()*/) //dmemAdapter
 
   // TODO: Make RAMs generic
   val imemCtrl = Module(BlockRam.createNonMaskableRAM(programFile, config, 8192))

@@ -5,7 +5,7 @@ import chisel3.util._
 import caravan.bus.common.{AbstrRequest, AbstrResponse, BusConfig}
 import components.{RVFI, RVFIPORT}
 
-class Core(val req:AbstrRequest, val rsp:AbstrResponse)(C:Boolean = false, F:Boolean = false)(implicit val config:BusConfig) extends Module {
+class Core(val req:AbstrRequest, val rsp:AbstrResponse)(M:Boolean = false, C:Boolean = false, F:Boolean = false)(implicit val config:BusConfig) extends Module {
   val io = IO(new Bundle {
     val pin: UInt = Output(UInt(32.W))
 
@@ -30,7 +30,7 @@ class Core(val req:AbstrRequest, val rsp:AbstrResponse)(C:Boolean = false, F:Boo
   val id_reg_rd3 = RegInit(0.U(32.W)) //changes
   val id_reg_imm = RegInit(0.U(32.W))
   val id_reg_wra = RegInit(0.U(5.W))
-  val id_reg_f7 = RegInit(0.U(1.W))
+  val id_reg_f7 = RegInit(0.U(7.W))
   val id_reg_f3 = RegInit(0.U(3.W))
   val id_reg_ins = RegInit(0.U(32.W))
   val id_reg_ctl_aluSrc = RegInit(false.B)
@@ -87,7 +87,7 @@ class Core(val req:AbstrRequest, val rsp:AbstrResponse)(C:Boolean = false, F:Boo
   //Pipeline Units
   val IF = Module(new InstructionFetch(req, rsp)).io
   val ID = Module(new InstructionDecode(F=F)).io
-  val EX = Module(new Execute(F=F)).io
+  val EX = Module(new Execute(F=F, M=M)).io
   val MEM = Module(new MemoryFetch(req,rsp))
 
   /*****************
