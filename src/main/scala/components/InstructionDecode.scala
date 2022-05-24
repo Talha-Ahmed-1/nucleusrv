@@ -238,7 +238,7 @@ class InstructionDecode(F:Boolean = false) extends Module {
 
   io.writeRegAddress := io.id_instruction(11, 7)
   io.func3 := io.id_instruction(14, 12)
-  io.func7 := io.id_instruction(31,25)
+  io.func7 := Mux(io.id_instruction(6,0) === "b0110011".U, io.id_instruction(31,25), 0.U)
   io.f5 := io.id_instruction(31, 27) //changes
   io.opcode :=io.id_instruction(6, 0) //changes
 }

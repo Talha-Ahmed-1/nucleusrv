@@ -110,7 +110,7 @@ class Execute(M:Boolean = false, F:Boolean = false) extends Module {
     mdu.io.op := io.func3
     mdu.io.valid := true.B
 
-    when (io.ctl_aluSrc && io.func7 === 1.U && mdu.io.ready){
+    when (io.func7 === 1.U && mdu.io.ready){
       io.ALUresult := Mux(mdu.io.output.valid, mdu.io.output.bits, 0.U)
     }
     .otherwise{io.ALUresult := alu.io.result}
