@@ -92,7 +92,7 @@ class MemoryFetch(val req:AbstrRequest, val rsp:AbstrResponse)(implicit val conf
   }
 
   io.dccmReq.bits.dataRequest := wdata.asUInt()
-  io.dccmReq.bits.addrRequest := (io.aluResultIn & "h00001fff".U) >> 2
+  io.dccmReq.bits.addrRequest := io.aluResultIn //(io.aluResultIn & "h00001fff".U) >> 2
   io.dccmReq.bits.isWrite := io.writeEnable
   io.dccmReq.valid := Mux(io.writeEnable | io.readEnable, true.B, false.B)
 
